@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>不動産投資物件管理</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f8fa;
+        --card: #ffffff;
+        --text: #1f2328;
+        --muted: #59636e;
+        --line: #d0d7de;
+        --accent: #2563eb;
+        --good: #15803d;
+        --warn: #b45309;
+        --bad: #b91c1c;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d1117;
+          --card: #161b22;
+          --text: #e6edf3;
+          --muted: #9da7b3;
+          --line: #30363d;
+          --accent: #3b82f6;
+          --good: #22c55e;
+          --warn: #f59e0b;
+          --bad: #ef4444;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .container {
+        max-width: 1100px;
+        margin: 24px auto;
+        padding: 0 16px 40px;
+      }
+      h1 {
+        margin-bottom: 8px;
+      }
+      .note {
+        color: var(--muted);
+        margin-top: 0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0 0 6px;
+      }
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: transparent;
+        color: inherit;
+      }
+      .row {
+        margin-bottom: 10px;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      button {
+        border: none;
+        border-radius: 8px;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .primary {
+        background: var(--accent);
+        color: #fff;
+      }
+      .ghost {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--line);
+      }
+      .result {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+      @media (max-width: 900px) {
+        .result {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+      }
+      .metric .label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .metric .value {
+        margin-top: 6px;
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .grade-S { color: var(--good); }
+      .grade-A { color: var(--good); }
+      .grade-B { color: var(--warn); }
+      .grade-C { color: var(--bad); }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border-bottom: 1px solid var(--line);
+        padding: 8px;
+        text-align: left;
+        font-size: 14px;
+      }
+      tr:hover {
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        cursor: pointer;
+      }
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .status {
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--muted);
+        min-height: 1.2em;
+      }
+      .status.error { color: var(--bad); }
+      .status.success { color: var(--good); }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>不動産投資物件管理アプリ</h1>
+      <p class="note">入力→自動計算（CF / 表面利回り / CCR）→簡易評価（S/A/B/C）→Google Spreadsheet保存</p>
+
+      <div class="grid">
+        <section class="card">
+          <h2>物件入力</h2>
+          <div class="row">
+            <label for="name">物件名</label>
+            <input id="name" type="text" placeholder="例: ○○レジデンス" />
+          </div>
+          <div class="row">
+            <label for="location">所在地</label>
+            <input id="location" type="text" placeholder="例: 東京都○○区" />
+          </div>
+          <div class="row">
+            <label for="propertyUrl">物件URL（ラクマチ等）</label>
+            <input id="propertyUrl" type="url" placeholder="https://..." />
+          </div>
+          <div class="row">
+            <label for="price">価格（円）</label>
+            <input id="price" type="number" min="0" step="10000" />
+          </div>
+          <div class="row">
+            <label for="rent">家賃（月額・円）</label>
+            <input id="rent" type="number" min="0" step="1000" />
+          </div>
+          <div class="row">
+            <label for="managementFee">管理費（月額・円）</label>
+            <input id="managementFee" type="number" min="0" step="1000" />
+          </div>
+          <div class="row">
+            <label for="loan">ローン返済額（月額・円）</label>
+            <input id="loan" type="number" min="0" step="1000" />
+          </div>
+          <div class="row">
+            <label for="expenses">諸経費（月額・円）</label>
+            <input id="expenses" type="number" min="0" step="1000" />
+          </div>
+          <div class="row">
+            <label for="equity">自己資金（円） ※CCR計算に使用</label>
+            <input id="equity" type="number" min="0" step="10000" />
+          </div>
+          <div class="actions">
+            <button class="primary" id="calcBtn">計算する</button>
+            <button class="ghost" id="saveBtn">Google Spreadsheetに保存</button>
+            <button class="ghost" id="clearBtn">入力クリア</button>
+          </div>
+          <div id="status" class="status"></div>
+        </section>
+
+        <section class="card">
+          <h2>Google Spreadsheet 連携設定</h2>
+          <p class="small">
+            Google Apps ScriptをWebアプリ公開し、URLを設定してください。<br />
+            - 保存: POST / 読み込み: GET を受け付ける想定です。
+          </p>
+          <div class="row">
+            <label for="endpoint">Apps Script WebアプリURL</label>
+            <input id="endpoint" type="url" value="https://script.google.com/macros/s/AKfycbxUYW_u22TVb4BEKom2RY-gQ56Cr1zoZnfemV5hKAji7CZnkiJ84lOtAHLYIju6aAT-JQ/exec" placeholder="https://script.google.com/macros/s/.../exec" />
+          </div>
+          <div class="actions">
+            <button class="ghost" id="loadBtn">スプレッドシートから読み込み</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="card" style="margin-top: 14px;">
+        <h2>自動計算結果</h2>
+        <div class="result">
+          <div class="metric">
+            <div class="label">月間CF</div>
+            <div class="value" id="cfValue">-</div>
+          </div>
+          <div class="metric">
+            <div class="label">年間CF</div>
+            <div class="value" id="annualCfValue">-</div>
+          </div>
+          <div class="metric">
+            <div class="label">表面利回り</div>
+            <div class="value" id="yieldValue">-</div>
+          </div>
+          <div class="metric">
+            <div class="label">CCR / 評価</div>
+            <div class="value" id="ccrValue">-</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top: 14px;">
+        <h2>保存済み物件</h2>
+        <p class="small">行をクリックすると入力欄に反映されます。</p>
+        <table>
+          <thead>
+            <tr>
+              <th>物件名</th>
+              <th>所在地</th>
+              <th>物件URL</th>
+              <th>価格</th>
+              <th>CF/月</th>
+              <th>表面利回り</th>
+              <th>CCR</th>
+              <th>評価</th>
+            </tr>
+          </thead>
+          <tbody id="propertyTableBody"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <script>
+      const DEFAULT_ENDPOINT = "https://script.google.com/macros/s/AKfycbxUYW_u22TVb4BEKom2RY-gQ56Cr1zoZnfemV5hKAji7CZnkiJ84lOtAHLYIju6aAT-JQ/exec";
+      const el = (id) => document.getElementById(id);
+      const statusEl = el("status");
+      const tableBody = el("propertyTableBody");
+      const storageKey = "asset-management-settings";
+      const properties = [];
+
+      function toNumber(value) {
+        const n = Number(value);
+        return Number.isFinite(n) ? n : 0;
+      }
+
+      function formatYen(num) {
+        return `${Math.round(num).toLocaleString("ja-JP")}円`;
+      }
+
+      function formatPercent(num) {
+        return `${num.toFixed(2)}%`;
+      }
+
+      function getFormData() {
+        return {
+          name: el("name").value.trim(),
+          location: el("location").value.trim(),
+          propertyUrl: el("propertyUrl").value.trim(),
+          price: toNumber(el("price").value),
+          rent: toNumber(el("rent").value),
+          managementFee: toNumber(el("managementFee").value),
+          loan: toNumber(el("loan").value),
+          expenses: toNumber(el("expenses").value),
+          equity: toNumber(el("equity").value)
+        };
+      }
+
+      function computeMetrics(data) {
+        const annualRent = data.rent * 12;
+        const monthlyCf = data.rent - data.managementFee - data.loan - data.expenses;
+        const annualCf = monthlyCf * 12;
+        const grossYield = data.price > 0 ? (annualRent / data.price) * 100 : 0;
+        const ccr = data.equity > 0 ? (annualCf / data.equity) * 100 : 0;
+        const grade = evaluate(grossYield, monthlyCf, ccr);
+        return { monthlyCf, annualCf, grossYield, ccr, grade };
+      }
+
+      function evaluate(grossYield, monthlyCf, ccr) {
+        if (monthlyCf > 0 && grossYield >= 8 && ccr >= 12) return "S";
+        if (monthlyCf >= 0 && grossYield >= 6 && ccr >= 8) return "A";
+        if (monthlyCf >= 0 && grossYield >= 4 && ccr >= 5) return "B";
+        return "C";
+      }
+
+      function renderMetrics(metrics) {
+        el("cfValue").textContent = formatYen(metrics.monthlyCf);
+        el("annualCfValue").textContent = formatYen(metrics.annualCf);
+        el("yieldValue").textContent = formatPercent(metrics.grossYield);
+        const ccrText = `${formatPercent(metrics.ccr)} / ${metrics.grade}`;
+        el("ccrValue").textContent = ccrText;
+        el("ccrValue").className = `value grade-${metrics.grade}`;
+      }
+
+      function rowToForm(item) {
+        el("name").value = item.name || "";
+        el("location").value = item.location || "";
+        el("propertyUrl").value = item.propertyUrl || "";
+        el("price").value = item.price ?? "";
+        el("rent").value = item.rent ?? "";
+        el("managementFee").value = item.managementFee ?? "";
+        el("loan").value = item.loan ?? "";
+        el("expenses").value = item.expenses ?? "";
+        el("equity").value = item.equity ?? "";
+        renderMetrics(computeMetrics(item));
+      }
+
+      function renderTable() {
+        tableBody.innerHTML = "";
+        properties.forEach((item) => {
+          const tr = document.createElement("tr");
+          const safeUrl = escapeHtml(item.propertyUrl || "");
+          const urlCell = safeUrl
+            ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">リンク</a>`
+            : "-";
+          tr.innerHTML = `
+            <td>${escapeHtml(item.name)}</td>
+            <td>${escapeHtml(item.location)}</td>
+            <td>${urlCell}</td>
+            <td>${formatYen(item.price)}</td>
+            <td>${formatYen(item.monthlyCf)}</td>
+            <td>${formatPercent(item.grossYield)}</td>
+            <td>${formatPercent(item.ccr)}</td>
+            <td class="grade-${item.grade}">${item.grade}</td>
+          `;
+          tr.addEventListener("click", () => rowToForm(item));
+          tableBody.appendChild(tr);
+        });
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function setStatus(message, type = "") {
+        statusEl.textContent = message;
+        statusEl.className = `status ${type}`.trim();
+      }
+
+      function getEndpoint() {
+        const endpoint = el("endpoint").value.trim();
+        if (!endpoint) {
+          throw new Error("Apps Script WebアプリURLを入力してください。");
+        }
+        return endpoint;
+      }
+
+      function persistSettings() {
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify({
+            endpoint: el("endpoint").value.trim()
+          })
+        );
+      }
+
+      function restoreSettings() {
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (!raw) {
+            el("endpoint").value = DEFAULT_ENDPOINT;
+            return;
+          }
+          const saved = JSON.parse(raw);
+          el("endpoint").value = saved.endpoint || DEFAULT_ENDPOINT;
+        } catch {
+          el("endpoint").value = DEFAULT_ENDPOINT;
+        }
+      }
+
+      async function saveToSheet(record) {
+        const endpoint = getEndpoint();
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(record)
+        });
+        if (!res.ok) {
+          throw new Error(`保存失敗: ${res.status} ${res.statusText}`);
+        }
+        return res.json().catch(() => ({ ok: true }));
+      }
+
+      async function loadFromSheet() {
+        const endpoint = getEndpoint();
+        const res = await fetch(endpoint, { method: "GET" });
+        if (!res.ok) {
+          throw new Error(`読み込み失敗: ${res.status} ${res.statusText}`);
+        }
+        const data = await res.json();
+        if (Array.isArray(data)) return data;
+        if (Array.isArray(data.data)) return data.data;
+        return [];
+      }
+
+      el("calcBtn").addEventListener("click", () => {
+        const data = getFormData();
+        const metrics = computeMetrics(data);
+        renderMetrics(metrics);
+        setStatus("計算しました。", "success");
+      });
+
+      el("saveBtn").addEventListener("click", async () => {
+        try {
+          const data = getFormData();
+          if (!data.name) {
+            setStatus("物件名を入力してください。", "error");
+            return;
+          }
+          persistSettings();
+          const metrics = computeMetrics(data);
+          const record = {
+            ...data,
+            ...metrics,
+            savedAt: new Date().toISOString()
+          };
+          await saveToSheet(record);
+          properties.unshift(record);
+          renderMetrics(metrics);
+          renderTable();
+          setStatus("Google Spreadsheetに保存しました。", "success");
+        } catch (err) {
+          setStatus(err.message || "保存時にエラーが発生しました。", "error");
+        }
+      });
+
+      el("loadBtn").addEventListener("click", async () => {
+        try {
+          persistSettings();
+          const rows = await loadFromSheet();
+          properties.length = 0;
+          rows.forEach((row) => {
+            const item = {
+              name: row.name || "",
+              location: row.location || "",
+              propertyUrl: row.propertyUrl || "",
+              price: toNumber(row.price),
+              rent: toNumber(row.rent),
+              managementFee: toNumber(row.managementFee),
+              loan: toNumber(row.loan),
+              expenses: toNumber(row.expenses),
+              equity: toNumber(row.equity)
+            };
+            Object.assign(item, computeMetrics(item));
+            properties.push(item);
+          });
+          renderTable();
+          setStatus(`${properties.length}件を読み込みました。`, "success");
+        } catch (err) {
+          setStatus(err.message || "読み込み時にエラーが発生しました。", "error");
+        }
+      });
+
+      el("clearBtn").addEventListener("click", () => {
+        ["name", "location", "propertyUrl", "price", "rent", "managementFee", "loan", "expenses", "equity"].forEach((id) => {
+          el(id).value = "";
+        });
+        el("cfValue").textContent = "-";
+        el("annualCfValue").textContent = "-";
+        el("yieldValue").textContent = "-";
+        el("ccrValue").textContent = "-";
+        el("ccrValue").className = "value";
+        setStatus("入力をクリアしました。");
+      });
+
+      restoreSettings();
+    </script>
+  </body>
+</html>

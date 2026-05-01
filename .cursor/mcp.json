@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "google-drive": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@piotr-agier/google-drive-mcp"
+      ],
+      "env": {
+        "GOOGLE_DRIVE_MCP_CLIENT_ID": "${GOOGLE_DRIVE_MCP_CLIENT_ID}",
+        "GOOGLE_DRIVE_MCP_CLIENT_SECRET": "${GOOGLE_DRIVE_MCP_CLIENT_SECRET}"
+      }
+    }
+  }
+}

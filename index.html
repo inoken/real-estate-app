@@ -416,17 +416,15 @@
       }
 
       async function saveToSheet(record) {
-        const endpoint = getEndpoint();
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(record)
-        });
-        if (!res.ok) {
-          throw new Error(`保存失敗: ${res.status} ${res.statusText}`);
-        }
-        return res.json().catch(() => ({ ok: true }));
-      }
+  const endpoint = getEndpoint();
+  const res = await fetch(endpoint, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(record)
+  });
+  return { ok: true };
+}
 
       async function loadFromSheet() {
         const endpoint = getEndpoint();

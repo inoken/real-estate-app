@@ -341,7 +341,6 @@
         const endpoint = getEndpoint();
         const res = await fetch(endpoint, {
           method: "GET",
-          mode: "no-cors"
         });
         try {
           const data = await res.json();

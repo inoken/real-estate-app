@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>不動産投資物件管理</title>
+    <title>不動産投資物件管理 SPA</title>
     <style>
       :root {
         color-scheme: light dark;
@@ -30,136 +30,78 @@
           --bad: #ef4444;
         }
       }
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
       body {
         margin: 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         background: var(--bg);
         color: var(--text);
       }
-      .container {
-        max-width: 1100px;
-        margin: 24px auto;
-        padding: 0 16px 40px;
+      .container { max-width: 1100px; margin: 24px auto; padding: 0 16px 40px; }
+      .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+      h1 { margin: 0 0 8px; }
+      .note { color: var(--muted); margin-top: 0; }
+      .tabs {
+        display: flex; gap: 8px; margin: 14px 0;
+        padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--card);
       }
-      h1 {
-        margin-bottom: 8px;
+      .tab-btn {
+        flex: 1; border: none; border-radius: 8px; padding: 10px 14px;
+        background: transparent; color: var(--text); cursor: pointer; font-weight: 600;
       }
-      .note {
-        color: var(--muted);
-        margin-top: 0;
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-      }
+      .tab-btn.active { background: var(--accent); color: #fff; }
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
       @media (max-width: 860px) {
-        .grid {
-          grid-template-columns: 1fr;
-        }
+        .grid { grid-template-columns: 1fr; }
+        .tabs { padding: 4px; }
+        .tab-btn { padding: 9px 10px; font-size: 14px; }
       }
-      .card {
-        background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 16px;
-      }
-      label {
-        display: block;
-        font-size: 13px;
-        color: var(--muted);
-        margin: 0 0 6px;
-      }
+      .row { margin-bottom: 10px; }
+      label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
       input {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: transparent;
-        color: inherit;
+        width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+        background: transparent; color: inherit;
       }
-      .row {
-        margin-bottom: 10px;
-      }
-      .actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 8px;
-      }
+      .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
       button {
-        border: none;
-        border-radius: 8px;
-        padding: 10px 14px;
-        cursor: pointer;
-        font-weight: 600;
+        border: none; border-radius: 8px; padding: 10px 14px; cursor: pointer; font-weight: 600;
       }
-      .primary {
-        background: var(--accent);
-        color: #fff;
-      }
-      .ghost {
-        background: transparent;
-        color: var(--text);
-        border: 1px solid var(--line);
-      }
-      .result {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
-      }
-      @media (max-width: 900px) {
-        .result {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
-      .metric {
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 12px;
-      }
-      .metric .label {
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .metric .value {
-        margin-top: 6px;
-        font-size: 20px;
-        font-weight: 700;
-      }
-      .grade-S { color: var(--good); }
-      .grade-A { color: var(--good); }
+      .primary { background: var(--accent); color: #fff; }
+      .ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+      .result { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+      @media (max-width: 900px) { .result { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      .metric { border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+      .metric .label { font-size: 12px; color: var(--muted); }
+      .metric .value { margin-top: 6px; font-size: 20px; font-weight: 700; }
+      .grade-S, .grade-A { color: var(--good); }
       .grade-B { color: var(--warn); }
       .grade-C { color: var(--bad); }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      th, td {
-        border-bottom: 1px solid var(--line);
-        padding: 8px;
-        text-align: left;
-        font-size: 14px;
-      }
-      tr:hover {
-        background: color-mix(in srgb, var(--accent) 8%, transparent);
-        cursor: pointer;
-      }
-      .small {
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .status {
-        margin-top: 8px;
-        font-size: 13px;
-        color: var(--muted);
-        min-height: 1.2em;
-      }
-      .status.error { color: var(--bad); }
+      .small { font-size: 12px; color: var(--muted); }
+      .status { margin-top: 8px; min-height: 1.2em; font-size: 13px; color: var(--muted); }
       .status.success { color: var(--good); }
+      .status.error { color: var(--bad); }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td {
+        border-bottom: 1px solid var(--line); padding: 8px; text-align: left; font-size: 14px; white-space: nowrap;
+      }
+      tr:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+      .url-link {
+        padding: 0; border: none; background: none; color: var(--accent); text-decoration: underline; cursor: pointer;
+      }
+      .modal-backdrop {
+        position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+        background: rgba(0, 0, 0, 0.45); padding: 12px;
+      }
+      .modal-backdrop.open { display: flex; }
+      .modal {
+        width: min(680px, 100%); background: var(--card); border: 1px solid var(--line);
+        border-radius: 12px; padding: 16px;
+      }
+      .modal h3 { margin-top: 0; }
+      .modal-url { word-break: break-all; color: var(--accent); }
     </style>
   </head>
   <body>
@@ -167,55 +109,63 @@
       <h1>不動産投資物件管理アプリ</h1>
       <p class="note">入力→自動計算（CF / 表面利回り / CCR）→簡易評価（S/A/B/C）→Google Spreadsheet保存</p>
 
-      <div class="grid">
-        <section class="card">
-          <h2>物件入力</h2>
-          <div class="row">
-            <label for="name">物件名</label>
-            <input id="name" type="text" placeholder="例: ○○レジデンス" />
-          </div>
-          <div class="row">
-            <label for="location">所在地</label>
-            <input id="location" type="text" placeholder="例: 東京都○○区" />
-          </div>
-          <div class="row">
-            <label for="propertyUrl">物件URL（ラクマチ等）</label>
-            <input id="propertyUrl" type="url" placeholder="https://..." />
-          </div>
-          <div class="row">
-            <label for="price">価格（円）</label>
-            <input id="price" type="number" min="0" step="10000" />
-          </div>
-          <div class="row">
-            <label for="rent">家賃（月額・円）</label>
-            <input id="rent" type="number" min="0" step="1000" />
-          </div>
-          <div class="row">
-            <label for="managementFee">管理費（月額・円）</label>
-            <input id="managementFee" type="number" min="0" step="1000" />
-          </div>
-          <div class="row">
-            <label for="loan">ローン返済額（月額・円）</label>
-            <input id="loan" type="number" min="0" step="1000" />
-          </div>
-          <div class="row">
-            <label for="expenses">諸経費（月額・円）</label>
-            <input id="expenses" type="number" min="0" step="1000" />
-          </div>
-          <div class="row">
-            <label for="equity">自己資金（円） ※CCR計算に使用</label>
-            <input id="equity" type="number" min="0" step="10000" />
-          </div>
-          <div class="actions">
-            <button class="primary" id="calcBtn">計算する</button>
-            <button class="ghost" id="saveBtn">Google Spreadsheetに保存</button>
-            <button class="ghost" id="clearBtn">入力クリア</button>
-          </div>
-          <div id="status" class="status"></div>
-        </section>
+      <nav class="tabs" aria-label="タブ">
+        <button class="tab-btn active" data-tab="inputTab">入力</button>
+        <button class="tab-btn" data-tab="listTab">物件一覧</button>
+        <button class="tab-btn" data-tab="configTab">Config</button>
+      </nav>
 
+      <section id="inputTab" class="tab-panel active">
+        <div class="grid">
+          <section class="card">
+            <h2>物件入力</h2>
+            <div class="row"><label for="name">物件名</label><input id="name" type="text" placeholder="例: ○○レジデンス" /></div>
+            <div class="row"><label for="location">所在地</label><input id="location" type="text" placeholder="例: 東京都○○区" /></div>
+            <div class="row"><label for="propertyUrl">物件URL（ラクマチ等）</label><input id="propertyUrl" type="url" placeholder="https://..." /></div>
+            <div class="row"><label for="price">価格（円）</label><input id="price" type="number" min="0" step="10000" /></div>
+            <div class="row"><label for="rent">家賃（月額・円）</label><input id="rent" type="number" min="0" step="1000" /></div>
+            <div class="row"><label for="managementFee">管理費（月額・円）</label><input id="managementFee" type="number" min="0" step="1000" /></div>
+            <div class="row"><label for="loan">ローン返済額（月額・円）</label><input id="loan" type="number" min="0" step="1000" /></div>
+            <div class="row"><label for="expenses">諸経費（月額・円）</label><input id="expenses" type="number" min="0" step="1000" /></div>
+            <div class="row"><label for="equity">自己資金（円） ※CCR計算に使用</label><input id="equity" type="number" min="0" step="10000" /></div>
+            <div class="actions">
+              <button class="primary" id="calcBtn">計算する</button>
+              <button class="ghost" id="saveBtn">Google Spreadsheetに保存</button>
+              <button class="ghost" id="clearBtn">入力クリア</button>
+            </div>
+            <div id="status" class="status"></div>
+          </section>
+          <section class="card">
+            <h2>自動計算結果</h2>
+            <div class="result">
+              <div class="metric"><div class="label">月間CF</div><div class="value" id="cfValue">-</div></div>
+              <div class="metric"><div class="label">年間CF</div><div class="value" id="annualCfValue">-</div></div>
+              <div class="metric"><div class="label">表面利回り</div><div class="value" id="yieldValue">-</div></div>
+              <div class="metric"><div class="label">CCR / 評価</div><div class="value" id="ccrValue">-</div></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="listTab" class="tab-panel">
         <section class="card">
-          <h2>Google Spreadsheet 連携設定</h2>
+          <h2>物件一覧</h2>
+          <div class="actions"><button class="ghost" id="loadBtn">スプレッドシートから読み込み</button></div>
+          <p class="small">行クリックで入力タブに反映。物件URLの「詳細」でモーダルを開きます。</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>物件名</th><th>所在地</th><th>物件URL</th><th>価格</th><th>CF/月</th><th>表面利回り</th><th>CCR</th><th>評価</th></tr>
+              </thead>
+              <tbody id="propertyTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="configTab" class="tab-panel">
+        <section class="card">
+          <h2>Config</h2>
           <p class="small">
             Google Apps ScriptをWebアプリ公開し、URLを設定してください。<br />
             - 保存: POST / 読み込み: GET を受け付ける想定です。
@@ -224,74 +174,40 @@
             <label for="endpoint">Apps Script WebアプリURL</label>
             <input id="endpoint" type="url" value="https://script.google.com/macros/s/AKfycbxUYW_u22TVb4BEKom2RY-gQ56Cr1zoZnfemV5hKAji7CZnkiJ84lOtAHLYIju6aAT-JQ/exec" placeholder="https://script.google.com/macros/s/.../exec" />
           </div>
-          <div class="actions">
-            <button class="ghost" id="loadBtn">スプレッドシートから読み込み</button>
-          </div>
+          <div class="small">設定はブラウザのローカルストレージに保存されます。</div>
         </section>
-      </div>
+      </section>
+    </div>
 
-      <section class="card" style="margin-top: 14px;">
-        <h2>自動計算結果</h2>
-        <div class="result">
-          <div class="metric">
-            <div class="label">月間CF</div>
-            <div class="value" id="cfValue">-</div>
-          </div>
-          <div class="metric">
-            <div class="label">年間CF</div>
-            <div class="value" id="annualCfValue">-</div>
-          </div>
-          <div class="metric">
-            <div class="label">表面利回り</div>
-            <div class="value" id="yieldValue">-</div>
-          </div>
-          <div class="metric">
-            <div class="label">CCR / 評価</div>
-            <div class="value" id="ccrValue">-</div>
-          </div>
+    <div id="urlModalBackdrop" class="modal-backdrop" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <h3 id="modalTitle">物件URL詳細</h3>
+        <p id="modalUrlText" class="modal-url"></p>
+        <div class="actions">
+          <a id="modalUrlLink" class="ghost" target="_blank" rel="noopener noreferrer">URLを開く</a>
+          <button class="primary" id="closeModalBtn">閉じる</button>
         </div>
-      </section>
-
-      <section class="card" style="margin-top: 14px;">
-        <h2>保存済み物件</h2>
-        <p class="small">行をクリックすると入力欄に反映されます。</p>
-        <table>
-          <thead>
-            <tr>
-              <th>物件名</th>
-              <th>所在地</th>
-              <th>物件URL</th>
-              <th>価格</th>
-              <th>CF/月</th>
-              <th>表面利回り</th>
-              <th>CCR</th>
-              <th>評価</th>
-            </tr>
-          </thead>
-          <tbody id="propertyTableBody"></tbody>
-        </table>
-      </section>
+      </div>
     </div>
 
     <script>
       const DEFAULT_ENDPOINT = "https://script.google.com/macros/s/AKfycbxUYW_u22TVb4BEKom2RY-gQ56Cr1zoZnfemV5hKAji7CZnkiJ84lOtAHLYIju6aAT-JQ/exec";
+      const storageKey = "asset-management-settings";
+      const properties = [];
       const el = (id) => document.getElementById(id);
       const statusEl = el("status");
       const tableBody = el("propertyTableBody");
-      const storageKey = "asset-management-settings";
-      const properties = [];
 
-      function toNumber(value) {
-        const n = Number(value);
-        return Number.isFinite(n) ? n : 0;
-      }
-
-      function formatYen(num) {
-        return `${Math.round(num).toLocaleString("ja-JP")}円`;
-      }
-
-      function formatPercent(num) {
-        return `${num.toFixed(2)}%`;
+      function toNumber(value) { const n = Number(value); return Number.isFinite(n) ? n : 0; }
+      function formatYen(num) { return `${Math.round(num).toLocaleString("ja-JP")}円`; }
+      function formatPercent(num) { return `${num.toFixed(2)}%`; }
+      function escapeHtml(str) {
+        return String(str)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
       }
 
       function getFormData() {
@@ -329,9 +245,17 @@
         el("cfValue").textContent = formatYen(metrics.monthlyCf);
         el("annualCfValue").textContent = formatYen(metrics.annualCf);
         el("yieldValue").textContent = formatPercent(metrics.grossYield);
-        const ccrText = `${formatPercent(metrics.ccr)} / ${metrics.grade}`;
-        el("ccrValue").textContent = ccrText;
+        el("ccrValue").textContent = `${formatPercent(metrics.ccr)} / ${metrics.grade}`;
         el("ccrValue").className = `value grade-${metrics.grade}`;
+      }
+
+      function switchTab(tabId) {
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.tab === tabId);
+        });
+        document.querySelectorAll(".tab-panel").forEach((panel) => {
+          panel.classList.toggle("active", panel.id === tabId);
+        });
       }
 
       function rowToForm(item) {
@@ -345,20 +269,17 @@
         el("expenses").value = item.expenses ?? "";
         el("equity").value = item.equity ?? "";
         renderMetrics(computeMetrics(item));
+        switchTab("inputTab");
       }
 
       function renderTable() {
         tableBody.innerHTML = "";
         properties.forEach((item) => {
           const tr = document.createElement("tr");
-          const safeUrl = escapeHtml(item.propertyUrl || "");
-          const urlCell = safeUrl
-            ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">リンク</a>`
-            : "-";
           tr.innerHTML = `
             <td>${escapeHtml(item.name)}</td>
             <td>${escapeHtml(item.location)}</td>
-            <td>${urlCell}</td>
+            <td>${item.propertyUrl ? '<button class="url-link">詳細</button>' : "-"}</td>
             <td>${formatYen(item.price)}</td>
             <td>${formatYen(item.monthlyCf)}</td>
             <td>${formatPercent(item.grossYield)}</td>
@@ -366,17 +287,15 @@
             <td class="grade-${item.grade}">${item.grade}</td>
           `;
           tr.addEventListener("click", () => rowToForm(item));
+          const urlButton = tr.querySelector(".url-link");
+          if (urlButton) {
+            urlButton.addEventListener("click", (event) => {
+              event.stopPropagation();
+              openUrlModal(item.propertyUrl);
+            });
+          }
           tableBody.appendChild(tr);
         });
-      }
-
-      function escapeHtml(str) {
-        return String(str)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
       }
 
       function setStatus(message, type = "") {
@@ -386,19 +305,12 @@
 
       function getEndpoint() {
         const endpoint = el("endpoint").value.trim();
-        if (!endpoint) {
-          throw new Error("Apps Script WebアプリURLを入力してください。");
-        }
+        if (!endpoint) throw new Error("Apps Script WebアプリURLを入力してください。");
         return endpoint;
       }
 
       function persistSettings() {
-        localStorage.setItem(
-          storageKey,
-          JSON.stringify({
-            endpoint: el("endpoint").value.trim()
-          })
-        );
+        localStorage.setItem(storageKey, JSON.stringify({ endpoint: el("endpoint").value.trim() }));
       }
 
       function restoreSettings() {
@@ -416,32 +328,47 @@
       }
 
       async function saveToSheet(record) {
-  const endpoint = getEndpoint();
-  const res = await fetch(endpoint, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(record)
-  });
-  return { ok: true };
-}
+        const endpoint = getEndpoint();
+        await fetch(endpoint, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(record)
+        });
+      }
 
       async function loadFromSheet() {
         const endpoint = getEndpoint();
-        const res = await fetch(endpoint, { method: "GET" });
-        if (!res.ok) {
-          throw new Error(`読み込み失敗: ${res.status} ${res.statusText}`);
+        const res = await fetch(endpoint, {
+          method: "GET",
+          mode: "no-cors"
+        });
+        try {
+          const data = await res.json();
+          if (Array.isArray(data)) return data;
+          if (Array.isArray(data.data)) return data.data;
+        } catch {
+          // mode: no-cors ではレスポンス本文を読めない場合がある
         }
-        const data = await res.json();
-        if (Array.isArray(data)) return data;
-        if (Array.isArray(data.data)) return data.data;
         return [];
       }
 
+      function openUrlModal(url) {
+        el("modalUrlText").textContent = url;
+        el("modalUrlLink").href = url;
+        el("urlModalBackdrop").classList.add("open");
+      }
+
+      function closeUrlModal() {
+        el("urlModalBackdrop").classList.remove("open");
+      }
+
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+      });
+
       el("calcBtn").addEventListener("click", () => {
-        const data = getFormData();
-        const metrics = computeMetrics(data);
-        renderMetrics(metrics);
+        renderMetrics(computeMetrics(getFormData()));
         setStatus("計算しました。", "success");
       });
 
@@ -454,11 +381,7 @@
           }
           persistSettings();
           const metrics = computeMetrics(data);
-          const record = {
-            ...data,
-            ...metrics,
-            savedAt: new Date().toISOString()
-          };
+          const record = { ...data, ...metrics, savedAt: new Date().toISOString() };
           await saveToSheet(record);
           properties.unshift(record);
           renderMetrics(metrics);
@@ -506,6 +429,11 @@
         el("ccrValue").textContent = "-";
         el("ccrValue").className = "value";
         setStatus("入力をクリアしました。");
+      });
+
+      el("closeModalBtn").addEventListener("click", closeUrlModal);
+      el("urlModalBackdrop").addEventListener("click", (event) => {
+        if (event.target.id === "urlModalBackdrop") closeUrlModal();
       });
 
       restoreSettings();

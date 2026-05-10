@@ -81,7 +81,6 @@
       .metric { border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
       .metric .label { font-size: 12px; color: var(--muted); }
       .metric .value { margin-top: 6px; font-size: 20px; font-weight: 700; }
-      .metric.memo-metric .value { font-size: 13px; font-weight: 400; white-space: pre-wrap; word-break: break-all; }
       .grade-S, .grade-A { color: var(--good); }
       .grade-B { color: var(--warn); }
       .grade-C { color: var(--bad); }
@@ -134,11 +133,11 @@
             <div class="row"><label for="name">物件名</label><input id="name" type="text" placeholder="例: ○○レジデンス" /></div>
             <div class="row"><label for="location">所在地</label><input id="location" type="text" placeholder="例: 東京都○○区" /></div>
             <div class="row"><label for="propertyUrl">物件URL（ラクマチ等）</label><input id="propertyUrl" type="url" placeholder="https://..." /></div>
-            <div class="row"><label for="price">価格（円）</label><input id="price" type="number" min="0" step="10000" /></div>
-            <div class="row"><label for="rent">家賃（月額・円）</label><input id="rent" type="number" min="0" step="1000" /></div>
-            <div class="row"><label for="managementFee">管理費（月額・円）</label><input id="managementFee" type="number" min="0" step="1000" /></div>
-            <div class="row"><label for="repairFund">修繕積立金（月額・円）</label><input id="repairFund" type="number" min="0" step="1000" /></div>
-            <div class="row"><label for="equity">自己資金（円） ※CCR・ローン計算に使用</label><input id="equity" type="number" min="0" step="10000" /></div>
+            <div class="row"><label for="price">価格（万円）</label><input id="price" type="number" min="0" step="1" placeholder="例: 2200" /></div>
+            <div class="row"><label for="rent">家賃（万円）</label><input id="rent" type="number" min="0" step="0.1" placeholder="例: 8.6" /></div>
+            <div class="row"><label for="managementFee">管理費（円）</label><input id="managementFee" type="number" min="0" step="100" /></div>
+            <div class="row"><label for="repairFund">修繕積立金（円）</label><input id="repairFund" type="number" min="0" step="100" /></div>
+            <div class="row"><label for="equity">自己資金（万円） ※CCR・ローン計算に使用</label><input id="equity" type="number" min="0" step="1" placeholder="例: 300" /></div>
             <div class="row"><label for="memo">メモ（コメント）</label><textarea id="memo" placeholder="気になる点、検討メモなど自由に入力"></textarea></div>
             <div class="actions">
               <button class="primary" id="calcBtn">計算する</button>
@@ -159,7 +158,6 @@
               <div class="metric"><div class="label">表面利回り</div><div class="value" id="yieldValue">-</div></div>
               <div class="metric"><div class="label">ローン返済額/月 <span class="auto-badge">自動</span></div><div class="value" id="loanValue">-</div></div>
               <div class="metric"><div class="label">CCR / 評価</div><div class="value" id="ccrValue">-</div></div>
-
             </div>
           </section>
         </div>
@@ -219,9 +217,11 @@
       const LOAN_RATE_ANNUAL = 0.02;
       const LOAN_YEARS = 35;
       const FIXED_EXPENSES = 6000;
+      const MAN = 10000; // 万円→円の変換係数
 
       function toNumber(value) { const n = Number(value); return Number.isFinite(n) ? n : 0; }
       function formatYen(num) { return `${Math.round(num).toLocaleString("ja-JP")}円`; }
+      function formatMan(num) { return `${(num / MAN).toLocaleString("ja-JP")}万円`; }
       function formatPercent(num) { return `${num.toFixed(2)}%`; }
       function escapeHtml(str) {
         return String(str)
@@ -240,16 +240,20 @@
         return principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
       }
 
+      // フォームから取得（万円→円に変換して返す）
       function getFormData() {
+        const priceMan = toNumber(el("price").value);
+        const rentMan = toNumber(el("rent").value);
+        const equityMan = toNumber(el("equity").value);
         return {
           name: el("name").value.trim(),
           location: el("location").value.trim(),
           propertyUrl: el("propertyUrl").value.trim(),
-          price: toNumber(el("price").value),
-          rent: toNumber(el("rent").value),
+          price: priceMan * MAN,
+          rent: rentMan * MAN,
           managementFee: toNumber(el("managementFee").value),
           repairFund: toNumber(el("repairFund").value),
-          equity: toNumber(el("equity").value),
+          equity: equityMan * MAN,
           memo: el("memo").value.trim()
         };
       }
@@ -280,7 +284,6 @@
         el("loanValue").textContent = formatYen(metrics.monthlyLoan);
         el("ccrValue").textContent = `${formatPercent(metrics.ccr)} / ${metrics.grade}`;
         el("ccrValue").className = `value grade-${metrics.grade}`;
-
       }
 
       function switchTab(tabId) {
@@ -292,15 +295,16 @@
         });
       }
 
+      // 物件一覧→入力タブへ反映（円→万円に変換）
       function rowToForm(item) {
         el("name").value = item.name || "";
         el("location").value = item.location || "";
         el("propertyUrl").value = item.propertyUrl || "";
-        el("price").value = item.price ?? "";
-        el("rent").value = item.rent ?? "";
+        el("price").value = item.price ? item.price / MAN : "";
+        el("rent").value = item.rent ? item.rent / MAN : "";
         el("managementFee").value = item.managementFee ?? "";
         el("repairFund").value = item.repairFund ?? "";
-        el("equity").value = item.equity ?? "";
+        el("equity").value = item.equity ? item.equity / MAN : "";
         el("memo").value = item.memo || "";
         renderMetrics(computeMetrics(item));
         switchTab("inputTab");
@@ -314,7 +318,7 @@
             <td>${escapeHtml(item.name)}</td>
             <td>${escapeHtml(item.location)}</td>
             <td>${item.propertyUrl ? '<button class="url-link">詳細</button>' : "-"}</td>
-            <td>${formatYen(item.price)}</td>
+            <td>${formatMan(item.price)}</td>
             <td>${formatYen(item.monthlyCf)}</td>
             <td>${formatPercent(item.grossYield)}</td>
             <td>${formatPercent(item.ccr)}</td>
@@ -395,8 +399,7 @@
       });
 
       el("calcBtn").addEventListener("click", () => {
-        const data = getFormData();
-        renderMetrics(computeMetrics(data));
+        renderMetrics(computeMetrics(getFormData()));
         setStatus("計算しました。", "success");
       });
 
@@ -455,7 +458,6 @@
         el("loanValue").textContent = "-";
         el("ccrValue").textContent = "-";
         el("ccrValue").className = "value";
-
         setStatus("入力をクリアしました。");
       });
 

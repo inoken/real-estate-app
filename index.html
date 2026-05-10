@@ -134,7 +134,7 @@
             <div class="row"><label for="location">所在地</label><input id="location" type="text" placeholder="例: 東京都○○区" /></div>
             <div class="row"><label for="propertyUrl">物件URL（ラクマチ等）</label><input id="propertyUrl" type="url" placeholder="https://..." /></div>
             <div class="row"><label for="price">価格（万円）</label><input id="price" type="number" min="0" step="1" placeholder="例: 2200" /></div>
-            <div class="row"><label for="rent">家賃（万円）</label><input id="rent" type="number" min="0" step="0.1" placeholder="例: 8.6" /></div>
+            <div class="row"><label for="rent">家賃（円）</label><input id="rent" type="number" min="0" step="100" placeholder="例: 86000" /></div>
             <div class="row"><label for="managementFee">管理費（円）</label><input id="managementFee" type="number" min="0" step="100" /></div>
             <div class="row"><label for="repairFund">修繕積立金（円）</label><input id="repairFund" type="number" min="0" step="100" /></div>
             <div class="row"><label for="equity">自己資金（万円） ※CCR・ローン計算に使用</label><input id="equity" type="number" min="0" step="1" placeholder="例: 300" /></div>
@@ -240,17 +240,16 @@
         return principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
       }
 
-      // フォームから取得（万円→円に変換して返す）
+      // フォームから取得（価格・自己資金は万円→円、家賃は円のまま）
       function getFormData() {
         const priceMan = toNumber(el("price").value);
-        const rentMan = toNumber(el("rent").value);
         const equityMan = toNumber(el("equity").value);
         return {
           name: el("name").value.trim(),
           location: el("location").value.trim(),
           propertyUrl: el("propertyUrl").value.trim(),
           price: priceMan * MAN,
-          rent: rentMan * MAN,
+          rent: toNumber(el("rent").value),
           managementFee: toNumber(el("managementFee").value),
           repairFund: toNumber(el("repairFund").value),
           equity: equityMan * MAN,
@@ -295,13 +294,13 @@
         });
       }
 
-      // 物件一覧→入力タブへ反映（円→万円に変換）
+      // 物件一覧→入力タブへ反映（価格・自己資金は万円に変換、家賃は円のまま）
       function rowToForm(item) {
         el("name").value = item.name || "";
         el("location").value = item.location || "";
         el("propertyUrl").value = item.propertyUrl || "";
         el("price").value = item.price ? item.price / MAN : "";
-        el("rent").value = item.rent ? item.rent / MAN : "";
+        el("rent").value = item.rent ?? "";
         el("managementFee").value = item.managementFee ?? "";
         el("repairFund").value = item.repairFund ?? "";
         el("equity").value = item.equity ? item.equity / MAN : "";
